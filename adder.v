@@ -27,15 +27,18 @@ module adder(
     );
 
     reg [12:0] shfsum;
-    wire [4:0] Afrac, Bfrac;
+    reg [4:0] Afrac, Bfrac;
     wire [2:0] Ashf, Bshf;
     
-    assign Afrac = {1'b1,A[3:0]};
-    assign Bfrac = {1'b1,B[3:0]};
     assign Ashf = A[6:4];
     assign Bshf = B[6:4];
     
     always@(*) begin
+        if(A[6:4] == 3'b000) Afrac = {1'b0,A[3:0]};
+            else Afrac = {1'b1,A[3:0]};
+        if(B[6:4] == 3'b000) Bfrac = {1'b0,B[3:0]};
+                else Bfrac = {1'b1,B[3:0]};   
+             
         if(Ashf >= Bshf) begin
             case({A[7],B[7]})
                 2'b00: begin shfsum = (Afrac << Ashf) + (Bfrac << Bshf); C[7] = 0; end
