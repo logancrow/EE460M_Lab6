@@ -28,12 +28,15 @@ module matrixmultiplier(
     
     wire [7:0] C00_next, C01_next, C02_next, C10_next, C11_next, C12_next, C20_next, C21_next, C22_next;
     wire [7:0] C00_in, C01_in, C02_in, C10_in, C11_in, C12_in, C20_in, C21_in, C22_in;
-    wire [7:0] AC00_in, BC00_in, AC01_in, BC01_in, AC02_in, BC02_in, AC10_in, BC10_in, AC11_in, BC11_in, AC12_in, BC12_in, AC20_in, BC20_in, AC21_in, BC21_in, AC22_in, BC22_in;
-    reg [7:0] AC00, BC00, AC01, BC01, AC02, BC02, AC10, BC10, AC11, BC11, AC12, BC12, AC20, BC20, AC21, BC21, AC22, BC22;
+    wire [7:0] AC00_in, AC01_in, AC02_in, AC10_in, AC11_in, AC12_in, AC20_in, AC21_in, AC22_in;
+    wire [7:0] BC00_in, BC01_in, BC02_in, BC10_in, BC11_in, BC12_in, BC20_in, BC21_in, BC22_in;
+    reg [7:0] AC00, AC01, AC02, AC10, AC11, AC12, AC20, AC21, AC22;
+    reg [7:0] BC00, BC01, BC02, BC10, BC11, BC12, BC20, BC21, BC22;
     reg [7:0] C00_out, C01_out, C02_out, C10_out, C11_out, C12_out, C20_out, C21_out, C22_out;
     reg [3:0] cycle_count;
     
-    assign {AC00_in,BC00_in,AC01_in,BC01_in,AC02_in,BC02_in,AC10_in,BC10_in,AC11_in,BC11_in,AC12_in,BC12_in,AC20_in,BC20_in,AC21_in,BC21_in,AC22_in,BC22_in} = {AC00,BC00,AC01,BC01,AC02,BC02,AC10,BC10,AC11,BC11,AC12,BC12,AC20,BC20,AC21,BC21,AC22,BC22};
+    assign {AC00_in,AC01_in,AC02_in,AC10_in,AC11_in,AC12_in,AC20_in,AC21_in,AC22_in} = {AC00,AC01,AC02,AC10,AC11,AC12,AC20,AC21,AC22};
+    assign {BC00_in,BC01_in,BC02_in,BC10_in,BC11_in,BC12_in,BC20_in,BC21_in,BC22_in} = {BC00,BC01,BC02,BC10,BC11,BC12,BC20,BC21,BC22};
     assign {C00,C01,C02,C10,C11,C12,C20,C21,C22} = {C00_out,C01_out,C02_out,C10_out,C11_out,C12_out,C20_out,C21_out,C22_out};
     
     MAC m0 (AC00_in,BC00_in,C00,C00_next);
@@ -156,7 +159,7 @@ module matrixmultiplier(
     end
     
     always@(posedge clk) begin
-        if(cycle_count <= 8) cycle_count = cycle_count + 1;
+        if(cycle_count < 8) cycle_count = cycle_count + 1;
         {C00_out,C01_out,C02_out,C10_out,C11_out,C12_out,C20_out,C21_out,C22_out} = {C00_next,C01_next,C02_next,C10_next,C11_next,C12_next,C20_next,C21_next,C22_next};
     end
     
@@ -246,7 +249,7 @@ endmodule
 //D= A*B + C
 module MAC(
     input [7:0] A, B, C, 
-    inout [7:0] D
+    output [7:0] D
     );
     
     wire [7:0] AXB;
