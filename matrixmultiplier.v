@@ -170,28 +170,42 @@ module adder(
     output reg [7:0] C
     );
 
-    reg [10:0] shfsum;
+    reg [12:0] shfsum;
+    reg [4:0] Afrac, Bfrac;
+    wire [2:0] Ashf, Bshf;
+    
+    assign Ashf = A[6:4];
+    assign Bshf = B[6:4];
     
     always@(*) begin
-        if(A[6:4] >= B[6:4]) begin
+        if(A[6:4] == 3'b000) Afrac = {1'b0,A[3:0]};
+            else Afrac = {1'b1,A[3:0]};
+        if(B[6:4] == 3'b000) Bfrac = {1'b0,B[3:0]};
+                else Bfrac = {1'b1,B[3:0]};   
+             
+        if(Ashf >= Bshf) begin
             case({A[7],B[7]})
-                2'b00: begin shfsum = (A[3:0] << (A[6:4] - B[6:4])) + B[3:0]; C[7] = 0; end
-                2'b01: begin shfsum = (A[3:0] << (A[6:4] - B[6:4])) - B[3:0]; C[7] = 0; end 
-                2'b10: begin shfsum = (A[3:0] << (A[6:4] - B[6:4])) - B[3:0]; C[7] = 1; end
-                2'b11: begin shfsum = (A[3:0] << (A[6:4] - B[6:4])) + B[3:0]; C[7] = 1; end 
-            endcase
-            if(shfsum[A[6:4] - B[6:4] + 4]) begin C[6:4] = A[6:4] + 1; C[3:0] = shfsum >> (A[6:4] - B[6:4] + 1); end
-                else begin C[6:4] = A[6:4]; C[3:0] = shfsum >> (A[6:4] - B[6:4]); end           
+                2'b00: begin shfsum = (Afrac << Ashf) + (Bfrac << Bshf); C[7] = 0; end
+                2'b01: begin shfsum = (Afrac << Ashf) - (Bfrac << Bshf); C[7] = 0; end 
+                2'b10: begin shfsum = (Afrac << Ashf) - (Bfrac << Bshf); C[7] = 1; end
+                2'b11: begin shfsum = (Afrac << Ashf) + (Bfrac << Bshf); C[7] = 1; end 
+            endcase      
         end else begin
             case({A[7],B[7]})
-                2'b00: begin shfsum = (B[3:0] << (B[6:4] - A[6:4])) + A[3:0]; C[7] = 0; end
-                2'b01: begin shfsum = (B[3:0] << (B[6:4] - A[6:4])) - A[3:0]; C[7] = 1; end 
-                2'b10: begin shfsum = (B[3:0] << (B[6:4] - A[6:4])) - A[3:0]; C[7] = 0; end
-                2'b11: begin shfsum = (B[3:0] << (B[6:4] - A[6:4])) + A[3:0]; C[7] = 1; end 
+                2'b00: begin shfsum = (Bfrac << Bshf) + (Afrac << Ashf); C[7] = 0; end
+                2'b01: begin shfsum = (Bfrac << Bshf) - (Afrac << Ashf); C[7] = 1; end 
+                2'b10: begin shfsum = (Bfrac << Bshf) - (Afrac << Ashf); C[7] = 0; end
+                2'b11: begin shfsum = (Bfrac << Bshf) + (Afrac << Ashf); C[7] = 1; end 
             endcase
-            if(shfsum[B[6:4] - A[6:4] + 4]) begin C[6:4] = B[6:4] + 1; C[3:0] = shfsum >> (B[6:4] - A[6:4] + 1); end
-                else begin C[6:4] = B[6:4]; C[3:0] = shfsum >> (B[6:4] - A[6:4]); end
         end
+        if(shfsum[11]) begin C[6:4] = 7; C[3:0] = shfsum[10:7]; end
+            else if(shfsum[10]) begin C[6:4] = 6; C[3:0] = shfsum[9:6]; end
+                else if(shfsum[9]) begin C[6:4] = 5; C[3:0] = shfsum[8:5]; end
+                    else if(shfsum[8]) begin C[6:4] = 4; C[3:0] = shfsum[7:4]; end
+                        else if(shfsum[7]) begin C[6:4] = 3; C[3:0] = shfsum[6:3]; end
+                            else if(shfsum[6]) begin C[6:4] = 2; C[3:0] = shfsum[5:2]; end
+                                else if(shfsum[5]) begin C[6:4] = 1; C[3:0] = shfsum[4:1]; end
+                                    else begin C[6:4] = 0; C[3:0] = shfsum[3:0]; end                                          
     end
     
 endmodule
@@ -203,20 +217,28 @@ module multiplier(
     output reg [7:0] C
     );
     
-    wire [21:0] shfprod;
+    wire [23:0] shfprod;
+    wire [3:0] shf;
+    reg [4:0] Afrac, Bfrac;
     
-    assign shfprod = ((A[3:0] * B[3:0]) << (A[6:4] + B[6:4]));
+    assign shf = A[6:4] + B[6:4];
+    
+    assign shfprod = ((Afrac * Bfrac) << shf);
     
     always@(*) begin
-        if(shfprod[10]) begin C[6:4] = 3'b111; C[3:0] = shfprod[10:7]; end
-            else if(shfprod[9]) begin C[6:4] = 3'b110; C[3:0] = shfprod[9:6]; end
-                else if(shfprod[8]) begin C[6:4] = 3'b101; C[3:0] = shfprod[8:5]; end
-                    else if(shfprod[7]) begin C[6:4] = 3'b100; C[3:0] = shfprod[7:4]; end
-                        else if(shfprod[6]) begin C[6:4] = 3'b011; C[3:0] = shfprod[6:3]; end
-                            else if(shfprod[5]) begin C[6:4] = 3'b010; C[3:0] = shfprod[5:2]; end
-                                else if(shfprod[4]) begin C[6:4] = 3'b001; C[3:0] = shfprod[4:1]; end
-                                    else if(shfprod[3]) begin C[6:4] = 3'b000; C[3:0] = shfprod[3:0]; end
-                                        else C[6:0] = 7'bxxxxxxx;
+        if(A[6:4] == 3'b000) Afrac = {1'b0,A[3:0]};
+            else Afrac = {1'b1,A[3:0]};
+        if(B[6:4] == 3'b000) Bfrac = {1'b0,B[3:0]};
+                else Bfrac = {1'b1,B[3:0]};
+                
+        if(shfprod[18]) begin C[6:4] = 7; C[3:0] = shfprod[17:14]; end
+            else if(shfprod[17]) begin C[6:4] = 6; C[3:0] = shfprod[16:13]; end
+                else if(shfprod[16]) begin C[6:4] = 5; C[3:0] = shfprod[15:12]; end
+                    else if(shfprod[15]) begin C[6:4] = 4; C[3:0] = shfprod[14:11]; end
+                        else if(shfprod[14]) begin C[6:4] = 3; C[3:0] = shfprod[13:10]; end
+                            else if(shfprod[13]) begin C[6:4] = 2; C[3:0] = shfprod[12:9]; end
+                                else if(shfprod[12]) begin C[6:4] = 1; C[3:0] = shfprod[11:8]; end
+                                    else begin C[6:4] = 0; C[3:0] = shfprod[10:7]; end
     C[7] = A[7] ^ B[7];
     end
     
@@ -232,6 +254,6 @@ module MAC(
     
     multiplier p0 (AXB,A,B);
     
-    adder a0 (C,C,AXB);
+    adder a0 (D,C,AXB);
     
 endmodule
