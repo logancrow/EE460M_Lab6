@@ -105,5 +105,5 @@ module tb_matrixmultiplier();
         
     end
     
-    always #1000 clk= ~clk;
+    always #5 clk= ~clk;
 endmodule
