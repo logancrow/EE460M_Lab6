@@ -27,7 +27,6 @@ module matrixmultiplier(
     );
     
     wire [7:0] C00_next, C01_next, C02_next, C10_next, C11_next, C12_next, C20_next, C21_next, C22_next;
-    wire [7:0] C00_in, C01_in, C02_in, C10_in, C11_in, C12_in, C20_in, C21_in, C22_in;
     wire [7:0] AC00_in, AC01_in, AC02_in, AC10_in, AC11_in, AC12_in, AC20_in, AC21_in, AC22_in;
     wire [7:0] BC00_in, BC01_in, BC02_in, BC10_in, BC11_in, BC12_in, BC20_in, BC21_in, BC22_in;
     reg [7:0] AC00, AC01, AC02, AC10, AC11, AC12, AC20, AC21, AC22;
@@ -185,21 +184,31 @@ module adder(
         if(B[6:4] == 3'b000) Bfrac = {1'b0,B[3:0]};
                 else Bfrac = {1'b1,B[3:0]};   
              
-        if(Ashf >= Bshf) begin
+        if(Ashf > Bshf) begin
             case({A[7],B[7]})
                 2'b00: begin shfsum = (Afrac << Ashf) + (Bfrac << Bshf); C[7] = 0; end
                 2'b01: begin shfsum = (Afrac << Ashf) - (Bfrac << Bshf); C[7] = 0; end 
                 2'b10: begin shfsum = (Afrac << Ashf) - (Bfrac << Bshf); C[7] = 1; end
                 2'b11: begin shfsum = (Afrac << Ashf) + (Bfrac << Bshf); C[7] = 1; end 
             endcase      
-        end else begin
+        end else if(Ashf < Bshf) begin
             case({A[7],B[7]})
                 2'b00: begin shfsum = (Bfrac << Bshf) + (Afrac << Ashf); C[7] = 0; end
                 2'b01: begin shfsum = (Bfrac << Bshf) - (Afrac << Ashf); C[7] = 1; end 
                 2'b10: begin shfsum = (Bfrac << Bshf) - (Afrac << Ashf); C[7] = 0; end
                 2'b11: begin shfsum = (Bfrac << Bshf) + (Afrac << Ashf); C[7] = 1; end 
             endcase
+        end else begin
+            case({A[7],B[7]})
+                2'b00: begin shfsum = (Bfrac << Bshf) + (Afrac << Ashf); C[7] = 0; end
+                2'b01: begin if(Afrac > Bfrac) begin shfsum = (Afrac << Ashf) - (Bfrac << Bshf); C[7] = 0; end 
+                                else begin shfsum = (Bfrac << Bshf) - (Afrac << Ashf); C[7] = 1; end end 
+                2'b10: begin if(Afrac > Bfrac) begin shfsum = (Afrac << Ashf) - (Bfrac << Bshf) ; C[7] = 1; end 
+                                else begin shfsum = (Bfrac << Bshf) - (Afrac << Ashf); C[7] = 0; end end
+                2'b11: begin shfsum = (Bfrac << Bshf) + (Afrac << Ashf); C[7] = 1; end 
+            endcase            
         end
+        
         if(shfsum[11]) begin C[6:4] = 7; C[3:0] = shfsum[10:7]; end
             else if(shfsum[10]) begin C[6:4] = 6; C[3:0] = shfsum[9:6]; end
                 else if(shfsum[9]) begin C[6:4] = 5; C[3:0] = shfsum[8:5]; end
@@ -252,10 +261,10 @@ module MAC(
     output [7:0] D
     );
     
-    wire [7:0] AXB;
+    wire [7:0] AB;
     
-    multiplier p0 (AXB,A,B);
+    multiplier p0 (A,B,AB);
     
-    adder a0 (D,C,AXB);
+    adder a0 (AB,C,D);
     
 endmodule
