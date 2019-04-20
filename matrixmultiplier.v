@@ -34,18 +34,17 @@ module matrixmultiplier(
     reg [3:0] cycle_count;
     
     assign {AC00_in,BC00_in,AC01_in,BC01_in,AC02_in,BC02_in,AC10_in,BC10_in,AC11_in,BC11_in,AC12_in,BC12_in,AC20_in,BC20_in,AC21_in,BC21_in,AC22_in,BC22_in} = {AC00,BC00,AC01,BC01,AC02,BC02,AC10,BC10,AC11,BC11,AC12,BC12,AC20,BC20,AC21,BC21,AC22,BC22};
-    assign {C00_in, C01_in, C02_in, C10_in, C11_in, C12_in, C20_in, C21_in, C22_in} = {C00_out,C01_out,C02_out,C10_out,C11_out,C12_out,C20_out,C21_out,C22_out};
     assign {C00,C01,C02,C10,C11,C12,C20,C21,C22} = {C00_out,C01_out,C02_out,C10_out,C11_out,C12_out,C20_out,C21_out,C22_out};
     
-    MAC m0 (AC00_in,BC00_in,C00_in,C00_out);
-    MAC m1 (AC01_in,BC01_in,C01_in,C01_out);
-    MAC m2 (AC02_in,BC02_in,C02_in,C02_out);
-    MAC m3 (AC10_in,BC10_in,C10_in,C10_out);
-    MAC m4 (AC11_in,BC11_in,C11_in,C11_out);
-    MAC m5 (AC12_in,BC12_in,C12_in,C12_out);
-    MAC m6 (AC20_in,BC20_in,C20_in,C20_out);
-    MAC m7 (AC21_in,BC21_in,C21_in,C21_out);
-    MAC m8 (AC22_in,BC22_in,C22_in,C22_out);                            
+    MAC m0 (AC00_in,BC00_in,C00,C00_next);
+    MAC m1 (AC01_in,BC01_in,C01,C01_next);
+    MAC m2 (AC02_in,BC02_in,C02,C02_next);
+    MAC m3 (AC10_in,BC10_in,C10,C10_next);
+    MAC m4 (AC11_in,BC11_in,C11,C11_next);
+    MAC m5 (AC12_in,BC12_in,C12,C12_next);
+    MAC m6 (AC20_in,BC20_in,C20,C20_next);
+    MAC m7 (AC21_in,BC21_in,C21,C21_next);
+    MAC m8 (AC22_in,BC22_in,C22,C22_next);                            
     
     initial begin
         {C00_out,C01_out,C02_out,C10_out,C11_out,C12_out,C20_out,C21_out,C22_out} = 72'h000000000000000000;
